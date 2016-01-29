@@ -26,7 +26,16 @@ public class ImageConvertUtil {
 
         bis.read(buffer);
 
-        return decode(buffer);
+        Bitmap result = null;
+        try {
+            result = decode(buffer);
+        } catch(Exception err) {
+            err.printStackTrace();
+
+            return null;
+        }
+
+        return result;
     }
 
     private static int btoi(byte b) {
@@ -109,19 +118,25 @@ public class ImageConvertUtil {
     }
 
     public static void TGAWriter(Bitmap bitmap, File file) throws IOException {
+        Matrix matrix = new Matrix();
+        matrix.setScale(1, -1);
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+
         ByteBuffer buffer = ByteBuffer.allocate(bitmap.getRowBytes() * bitmap.getHeight());
         bitmap.copyPixelsToBuffer(buffer);
-        boolean alpha = bitmap.hasAlpha();
         byte[] data;
 
         byte[] pixels = buffer.array();
-        if (pixels.length != bitmap.getWidth() * bitmap.getHeight() * (alpha ? 4 : 3))
+        if (pixels.length != bitmap.getWidth() * bitmap.getHeight() * 4)
             throw new IllegalStateException();
 
         data = new byte[pixels.length];
 
-        for (int i = 0, p = pixels.length - 1; i < data.length; i++, p--) {
-            data[i] = pixels[p];
+        for (int i = 0; i < bitmap.getWidth() * bitmap.getHeight(); i++) {
+            data[i * 4 + 0] = (byte) (pixels[i * 4 + 2] & 0xFF);
+            data[i * 4 + 1] = (byte) (pixels[i * 4 + 1] & 0xFF);
+            data[i * 4 + 2] = (byte) (pixels[i * 4 + 0] & 0xFF);
+            data[i * 4 + 3] = (byte) (pixels[i * 4 + 3] & 0xFF);
         }
 
         byte[] header = new byte[18];
@@ -130,23 +145,13 @@ public class ImageConvertUtil {
         header[13] = (byte) ((bitmap.getWidth() >> 8) & 0xFF);
         header[14] = (byte) ((bitmap.getHeight() >> 0) & 0xFF);
         header[15] = (byte) ((bitmap.getHeight() >> 8) & 0xFF);
-        header[16] = (byte) (alpha ? 32 : 24);
-        header[17] = (byte) ((alpha ? 8 : 0) | (1 << 4));
-
-        byte[] all_buffer = new byte[pixels.length + 18];
-
-        for(int i = 0; i < all_buffer.length; i++) {
-            if(i < 18) {
-                all_buffer[i] = header[i];
-            } else {
-                all_buffer[i] = data[i - 18];
-            }
-        }
+        header[16] = (byte) 32;
+        header[17] = (byte) (8 | (1 << 4));
 
         (new File(Environment.getExternalStorageDirectory() + "/mipmap")).mkdirs();
 
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-
-        bos.write(all_buffer);
+        FileOutputStream out = new FileOutputStream (file);
+        out.write (header, 0, 18);
+        out.write (data, 0, 4 * bitmap.getWidth() * bitmap.getHeight());
     }
 }

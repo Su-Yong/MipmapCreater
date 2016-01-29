@@ -13,6 +13,7 @@
         android:id="@+id/file_name"
         android:text="File name"
         android:textSize="48px"
+        android:singleLine="true"
         android:layout_gravity="center|center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

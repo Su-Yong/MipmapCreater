@@ -1,6 +1,7 @@
 package com.afterglow.mipmapcreater;
 
 import android.graphics.Bitmap;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,10 +49,19 @@ public class FileListAdapter extends RecyclerView.Adapter {
             public void onClick(View v) {
                 if(isDirectory_) {
                     FileActivity.updatePath(FileActivity.path + "/" + name_);
-                } else {
+                } else if(name_.substring(name_.lastIndexOf(".")+1, name_.length()).equals("tga")) {
                     MainActivity.terrain_path = FileActivity.path + "/" + name_;
                     FileActivity.finThis();
                     MainActivity.onDrawTerrain();
+                } else {
+                    Snackbar.make(v, "tga 파일이 아닙니다!\n정말로 파일을 여시겠습니까?", Snackbar.LENGTH_SHORT).setAction("네", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            MainActivity.terrain_path = FileActivity.path + "/" + name_;
+                            FileActivity.finThis();
+                            MainActivity.onDrawTerrain();
+                        }
+                    }).show();
                 }
             }
         });

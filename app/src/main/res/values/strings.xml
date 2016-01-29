@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Mipmap Creater</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_create">Creater</string>
     <string name="title_activity_file">Select your terrain file</string>
 </resources>
